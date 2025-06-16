@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Issue Life Cycle Workflow</title>
+    <!-- Chosen Palette: "Soothing Neutrals" - A calm palette with a light beige background, dark slate text, and color-coded accents (blue for ready, amber for in-progress/pending, orange for blocked, green for done/release) to guide the user's attention through the process states. -->
+    <!-- Application Structure Plan: The SPA is structured to provide a comprehensive understanding of the issue lifecycle. It begins with an overarching introduction, followed by the core interactive workflow diagram. This diagram is designed as a linear flow with clear branching points for review and bug resolution. Interactive elements allow users to click on each status for detailed information and filter the diagram by role (Developer/QA) for personalized insights. A dedicated section on bug story pointing clarifies the team's policy, crucial for planning and metrics. The page concludes with a summary of key benefits from adopting this structured workflow. This logical progression from overview to detail, combined with interactive elements, aims to facilitate deep user understanding and team alignment. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Comprehensive Kanban statuses and their functions. -> Goal: Organize/Inform/Change. -> Viz/Method: An interactive visual representation using a custom HTML/CSS grid layout for statuses. -> Interaction: Clickable status boxes reveal detailed descriptions in a modal. Role-based filtering highlights relevant paths. -> Justification: A visual, interactive diagram makes complex workflows digestible and encourages self-exploration, significantly improving comprehension over static text. This version focuses on a clean layout without arrows to perfect spacing before re-introducing complex visual connectors.
+        - Report Info: Detailed explanations for each status. -> Goal: Inform. -> Viz/Method: Textual content within a dynamic modal. -> Interaction: Activated by clicking status boxes. -> Justification: Provides depth on demand, keeping the main diagram clean while offering comprehensive details for interested users.
+        - Report Info: Story pointing policy for bugs. -> Goal: Inform/Clarify. -> Viz/Method: A dedicated textual section with headings and paragraphs. -> Interaction: Passive consumption. -> Justification: This critical policy requires clear, detailed explanation that stands apart from the workflow steps themselves, ensuring its importance is conveyed effectively.
+        - Report Info: Key Benefits list. -> Goal: Inform. -> Viz/Method: A responsive grid of cards with icons and concise text. -> Interaction: Subtle hover effects. -> Justification: Summarizes value propositions in an easily scannable and digestible format.
+        - NEW FEATURE (LLM): AI-powered tips for each workflow step. -> Goal: Enhance understanding and provide actionable insights. -> Viz/Method: Dynamically generated text within the modal. -> Interaction: Button click in the modal to trigger LLM call. -> Justification: Leverages AI to provide real-time, context-aware advice, deepening user engagement and accelerating learning for complex workflow nuances.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. 
+    -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6;
+            color: #334155;
+        }
+        /* Custom max-width for the main content container to utilize more screen space */
+        .max-w-custom-1850 {
+            max-width: 1850px; /* Wider content area as requested */
+        }
+
+        .workflow-step {
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+            min-width: 180px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-width: 2px;
+            border-style: solid;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .workflow-container-inner {
+            display: grid;
+            /* Explicitly define columns with fixed width for better control */
+            grid-template-columns: repeat(8, 230px); /* Adjusted width for more horizontal space */
+            gap: 2rem 1.5rem; /* Vertical gap, horizontal gap between grid cells */
+            padding: 2rem 0;
+            align-items: center; /* Vertically align items in their cells */
+            justify-items: center; /* Horizontally align items in their cells */
+            min-width: 1840px; /* 8 columns * 230px/column = 1840px minimum width for horizontal scroll */
+            grid-auto-rows: minmax(120px, auto); /* Ensure rows have enough height for content */
+        }
+        /* Ensure step boxes fill their grid cells */
+        .workflow-container-inner > div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%; /* Grid cell is 100% of its defined column width */
+            height: 100%;
+        }
+        .workflow-container-inner .workflow-step {
+            width: 180px; /* Fixed width for the step box content */
+            height: 90px; /* Fixed height for the step box content */
+        }
+
+        .highlight {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 25px rgba(30, 144, 255, 0.5);
+            border-color: #2563eb !important;
+        }
+        .dimmed {
+            opacity: 0.3;
+            filter: grayscale(80%);
+        }
+        .modal-backdrop {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+
+        /* All .arrow and .arrow-label related CSS rules have been removed as per user request. */
+    </style>
+</head>
+<body>
+
+    <div class="max-w-custom-1850 mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+
+        <!-- Header -->
+        <header class="text-center mb-12 md:mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 tracking-tight">Comprehensive Issue Life Cycle</h1>
+            <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">An interactive guide to our team's proposed end-to-end workflow in Jira, highlighting responsibilities and transitions.</p>
+        </header>
+
+        <main>
+            <!-- Interactive Workflow Section -->
+            <section id="interactive-workflow" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-12 md:mb-16 overflow-x-auto">
+                <div class="md:flex justify-between items-center mb-8 min-w-[900px]">
+                    <h2 class="text-2xl font-bold text-slate-700 mb-4 md:mb-0">Workflow Diagram</h2>
+                    <div class="flex items-center space-x-2 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="filterWorkflow('all')" class="role-filter-btn active w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md transition-colors bg-blue-600 text-white">All Roles</button>
+                        <button onclick="filterWorkflow('dev')" class="role-filter-btn w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md transition-colors text-slate-600 hover:bg-slate-200">Developer</button>
+                        <button onclick="filterWorkflow('qa')" class="role-filter-btn w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md transition-colors text-slate-600 hover:bg-slate-200">QA</button>
+                        <button onclick="filterWorkflow('design')" class="role-filter-btn w-full md:w-auto px-4 py-2 text-sm font-semibold rounded-md transition-colors text-slate-600 hover:bg-slate-200">Design</button>
+                    </div>
+                </div>
+
+                <div class="relative overflow-x-auto pb-8">
+                    <div id="workflow-container" class="relative workflow-container-inner">
+                        
+                        <!-- Sprint Backlog -->
+                        <div style="grid-column: 1; grid-row: 1;">
+                            <div id="step-sprint-backlog" class="workflow-step bg-blue-100 border-blue-200 cursor-pointer" data-role="all" onclick="showModal('Sprint Backlog')">
+                                <span class="block font-semibold text-blue-800">Sprint Backlog</span>
+                                <span class="text-xs text-blue-600">Committed Scope</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Ready to Dev -->
+                        <div style="grid-column: 2; grid-row: 1;">
+                             <div id="step-ready-to-dev" class="workflow-step bg-blue-100 border-blue-200 cursor-pointer" data-role="dev qa" onclick="showModal('Ready to Dev')">
+                                <span class="block font-semibold text-blue-800">Ready to Dev</span>
+                                <span class="text-xs text-blue-600">Requirements Defined</span>
+                            </div>
+                        </div>
+
+                        <!-- Dev/ In Progress -->
+                        <div style="grid-column: 3; grid-row: 1;">
+                            <div id="step-dev-in-progress" class="workflow-step bg-amber-100 border-amber-200 cursor-pointer" data-role="dev" onclick="showModal('Dev/ In Progress')">
+                                <span class="block font-semibold text-amber-800">Dev / In Progress</span>
+                                <span class="text-xs text-amber-600">Active Development</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Code Review -->
+                        <div style="grid-column: 4; grid-row: 1;">
+                            <div id="step-code-review" class="workflow-step bg-slate-100 border-slate-200 cursor-pointer" data-role="dev" onclick="showModal('Code Review')">
+                                <span class="block font-semibold text-slate-700">Code Review</span>
+                                <span class="text-xs text-slate-500">Peer Check</span>
+                            </div>
+                        </div>
+
+                        <!-- Design Review -->
+                        <div style="grid-column: 4; grid-row: 2;">
+                            <div id="step-design-review" class="workflow-step bg-slate-100 border-slate-200 cursor-pointer" data-role="design" onclick="showModal('Design Review')">
+                                <span class="block font-semibold text-slate-700">Design Review</span>
+                                <span class="text-xs text-slate-500">UI/UX Check</span>
+                            </div>
+                        </div>
+
+                        <!-- Ready for QA -->
+                        <div style="grid-column: 5; grid-row: 1;">
+                            <div id="step-ready-for-qa" class="workflow-step bg-blue-100 border-blue-200 cursor-pointer" data-role="qa" onclick="showModal('Ready for QA')">
+                                <span class="block font-semibold text-blue-800">Ready for QA</span>
+                                <span class="text-xs text-blue-600">QA Testing</span>
+                            </div>
+                        </div>
+
+                        <!-- Pending FIX -->
+                        <div style="grid-column: 6; grid-row: 1;">
+                             <div id="step-pending-fix" class="workflow-step bg-amber-100 border-amber-200 cursor-pointer" data-role="dev qa" onclick="showModal('Pending FIX')">
+                                <span class="block font-semibold text-amber-800">Pending FIX</span>
+                                <span class="text-xs text-amber-600">Bug Fixing</span>
+                            </div>
+                        </div>
+
+                        <!-- Blocked -->
+                        <div style="grid-column: 6; grid-row: 2;">
+                             <div id="step-blocked" class="workflow-step bg-orange-200 border-orange-300 cursor-pointer" data-role="qa" onclick="showModal('Blocked')">
+                                <span class="block font-semibold text-orange-900">Task: BLOCKED</span>
+                                <span class="text-xs text-orange-700">Original Task Paused</span>
+                            </div>
+                        </div>
+
+                        <!-- Ready for Release -->
+                        <div style="grid-column: 7; grid-row: 1;">
+                            <div id="step-ready-for-release" class="workflow-step bg-green-100 border-green-200 cursor-pointer" data-role="all" onclick="showModal('Ready for Release')">
+                                <span class="block font-semibold text-green-800">Ready for Release</span>
+                                <span class="text-xs text-green-600">Staging & Coordination</span>
+                            </div>
+                        </div>
+
+                        <!-- Done -->
+                        <div style="grid-column: 8; grid-row: 1;">
+                            <div id="step-done" class="workflow-step bg-emerald-200 border-emerald-300 cursor-pointer" data-role="all" onclick="showModal('Done')">
+                                <span class="block font-semibold text-emerald-900">Done</span>
+                                <span class="text-xs text-emerald-700">Live & Complete</span>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </section>
+
+            <!-- Story Pointing Policy Section -->
+            <section id="story-pointing-policy" class="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-12 md:mb-16">
+                <h2 class="text-2xl font-bold text-slate-700 mb-6">Story Pointing Policy for Bugs</h2>
+                <p class="text-slate-600 mb-4">Understanding how we assign story points to bugs is crucial for accurate sprint planning and velocity metrics. Our policy aims to differentiate between effort for new feature quality and unplanned work due to unforeseen issues.</p>
+                <div class="prose max-w-none text-slate-600">
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Bugs Found within Current Sprint Scope: No Story Points</h3>
+                    <p class="mb-4">If a bug is found during the development or QA of work currently within the active **Sprint Backlog**, the effort to fix this bug is considered part of the original **Story's** or **Task's** allocated story points. The task is not truly "Done" until it meets quality standards, including being bug-free. Therefore, fixing these bugs is part of the committed effort and does not receive additional story points.</p>
+
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Bugs from Outside Current Sprint Scope (Production or Older Code): Story Points Awarded</h3>
+                    <p class="mb-4">Story points *will be awarded* to bugs that:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>Are found in **production** for features released in **previous sprints**.</li>
+                        <li>Result from **new scope rolling out** that impacts or breaks existing, previously working features (regressions).</li>
+                        <li>Have **no direct relation to the current sprint backlog**.</li>
+                    </ul>
+                    <p class="mb-4">These bugs represent unforeseen, unplanned work that pulls capacity from new feature development. Assigning them story points accurately reflects the team's actual effort and impact on sprint velocity.</p>
+
+                    <h3 class="text-xl font-semibold text-slate-700 mb-2">Exceptional Cases for Story Points</h3>
+                    <p>An exception may occur if a bug or error reveals a fundamental flaw in the software's architecture or a core approach, requiring significant **rework** that was genuinely unforeseeable during initial planning. In such rare cases, the decision to award story points for the bug fix will be made by the **Product Manager**, or escalated to the **Product Owner** if the situation warrants a broader discussion of priorities and strategic impact.</p>
+                </div>
+            </section>
+
+            <!-- Key Benefits Section -->
+            <section id="benefits">
+                <h2 class="text-3xl font-bold text-center text-slate-800 mb-10">Key Benefits</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 text-blue-600 mb-4">
+                            <span class="text-2xl">👀</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Increased Visibility</h3>
+                        <p class="text-slate-500 text-sm">The "Blocked" status clearly indicates when a task is halted, preventing misinterpretations about its readiness.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-4">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Improved Flow Accuracy</h3>
+                        <p class="text-slate-500 text-sm">The Kanban board accurately reflects the true state of work, not just a queue of seemingly ready tasks.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
+                         <div class="flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 text-amber-600 mb-4">
+                            <span class="text-2xl">🎯</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Better Resource Allocation</h3>
+                        <p class="text-slate-500 text-sm">Team members can easily identify which tasks are genuinely ready versus those awaiting a bug fix, improving focus.</p>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
+                        <div class="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 text-purple-600 mb-4">
+                             <span class="text-2xl">🔗</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700 mb-2">Enhanced Traceability</h3>
+                        <p class="text-slate-500 text-sm">Explicit linking and status changes provide a clear audit trail of the bug resolution process in relation to original work.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Step Details -->
+    <div id="step-modal" class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none" onclick="hideModal()">
+        <div class="modal-content bg-white w-full max-w-lg rounded-xl shadow-2xl p-6 md:p-8 transform scale-95" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-2xl font-bold text-slate-800"></h3>
+                <button onclick="hideModal()" class="text-slate-400 hover:text-slate-600 transition-colors">&times;</button>
+            </div>
+            <div id="modal-body" class="text-slate-600 space-y-4">
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-200">
+                <button id="ai-tips-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">Get AI Tips ✨</button>
+                <div id="ai-tips-output" class="mt-4 text-sm text-slate-700 leading-relaxed"></div>
+                <div id="ai-tips-loading" class="hidden mt-4 text-sm text-slate-500">Loading AI tips...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stepDetails = {
+            'Sprint Backlog': {
+                title: 'Sprint Backlog',
+                body: `<p>This represents the limited scope of work our team has committed to delivering within the current sprint.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Holds issues (tasks, stories, bugs) prioritized for the current sprint.</li>
+                         <li><strong>Responsible:</strong> Product Owner, Team</li>
+                         <li><strong>Transition From:</strong> Product Backlog (not shown on this diagram)</li>
+                         <li><strong>Transition To:</strong> Ready to Dev</li>
+                       </ul>`,
+                promptContext: "Sprint Backlog status in an agile Kanban workflow. This is the committed scope for the sprint."
+            },
+            'Ready to Dev': {
+                title: 'Ready to Dev',
+                body: `<p>Issues in this column are fully defined and ready for development to begin. This means all prerequisites for development are met.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Serves as a queue for developers.</li>
+                         <li><strong>Responsible:</strong> Product Manager, Tech Lead, Team</li>
+                         <li><strong>Definition of Ready:</strong> Technical, functional, and non-functional requirements are clearly defined; acceptance criteria are written, understood, and agreed upon.</li>
+                         <li><strong>Transition From:</strong> Sprint Backlog</li>
+                         <li><strong>Transition To:</b> Dev / In Progress</li>
+                       </ul>`,
+                promptContext: "Ready to Dev status in an agile Kanban workflow. Issues here are fully defined and ready for developers."
+            },
+            'Dev/ In Progress': {
+                title: 'Dev / In Progress',
+                body: `<p>Developers actively work on issues moved into this column from "Ready to Dev".</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Tracks active development work.</li>
+                         <li><strong>Responsible:</strong> Developer</li>
+                         <li><strong>Action:</strong> Implement code, unit tests.</li>
+                         <li><strong>Transition From:</strong> Ready to Dev, Code Review (if returned), Design Review (if returned), Pending FIX (for bugs).</li>
+                         <li><strong>Transition To:</b> Code Review, Design Review.</li>
+                       </ul>`,
+                promptContext: "Dev / In Progress status in an agile Kanban workflow. Developers are actively working on issues."
+            },
+            'Code Review': {
+                title: 'Code Review',
+                body: `<p>Developers place issues here for peer review by other developers, ensuring code quality and adherence to standards.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Quality gate for backend/general code.</li>
+                         <li><strong>Responsible:</strong> Developers (reviewer and author)</li>
+                         <li><strong>Action:</strong> Review code for requirements, best practices, and overall quality.</li>
+                         <li><strong>If problems found:</strong> Return to "Dev / In Progress" with comments (for minor issues not warranting a full bug).</li>
+                         <li><strong>Transition From:</strong> Dev / In Progress</li>
+                         <li><strong>Transition To:</b> Dev / In Progress, Ready for QA</li>
+                       </ul>`,
+                promptContext: "Code Review status in an agile Kanban workflow. Issues are peer-reviewed by other developers."
+            },
+            'Design Review': {
+                title: 'Design Review',
+                body: `<p>Front-end issues are placed here for review by the design team, focusing on UI/UX adherence and visual consistency.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Quality gate for UI/UX.</li>
+                         <li><strong>Responsible:</strong> Design Team, Front-end Developer</li>
+                         <li><strong>Action:</strong> Review UI/UX against design specifications and user experience principles.</li>
+                         <li><strong>If problems found:</strong> Return to "Dev / In Progress" with comments (for minor issues).</li>
+                         <li><strong>Transition From:</b> Dev / In Progress</li>
+                         <li><strong>Transition To:</b> Dev / In Progress, Ready for QA</li>
+                       </ul>`,
+                promptContext: "Design Review status in an agile Kanban workflow. Front-end issues are reviewed by the design team for UI/UX."
+            },
+            'Ready for QA': {
+                title: 'Ready for QA',
+                body: `<p>Issues are placed here once Code Review and Design Review (if applicable) are satisfied, signaling they are ready for QA testing.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Queue for Quality Assurance testing.</li>
+                         <li><strong>Responsible:1</strong> QA Team</li>
+                         <li><strong>Action:</strong> Pick up issues, perform comprehensive testing.</li>
+                         <li><strong>If bug found (major):</strong> Create "Bug" issue, link to original, move original to "Blocked", move Bug to "Pending FIX".</li>
+                         <li><strong>If bug found (minor):</strong> Add comments to issue, potentially loop back to "Dev / In Progress".</li>
+                         <li><strong>Transition From:</strong> Code Review, Design Review, Pending FIX (for re-test).</li>
+                         <li><strong>Transition To:</strong> Pending FIX, Blocked, Ready for Release.</li>
+                       </ul>`,
+                promptContext: "Ready for QA status in an agile Kanban workflow. Issues are ready for comprehensive QA testing."
+            },
+            'Pending FIX': {
+                title: 'Pending FIX (for Bugs)',
+                body: `<p>This column holds "Bug" issues created by the QA team, awaiting a developer to fix them.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Dedicated lane for bug resolution.</li>
+                         <li><strong>Responsible:</strong> Development Team</li>
+                         <li><strong>Action:</strong> Relevant developer picks up the bug, implements a fix. Bugs can be granular or grouped by architecture/component.</li>
+                         <li><strong>Transition From:</strong> Ready for QA.</li>
+                         <li><strong>Transition To:</strong> Ready for QA (for re-test).</li>
+                       </ul>`,
+                promptContext: "Pending FIX status for bugs in an agile Kanban workflow. Bugs are awaiting developer action."
+            },
+             'Blocked': {
+                title: 'Task: BLOCKED (Original Issue)',
+                body: `<p>This new column indicates that an original issue (Task/Story) is currently held up because a blocking bug, found during QA, is being addressed by the development team.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Prevents other QA members from unknowingly picking up a non-ready issue from "Ready for QA".</li>
+                         <li><strong>Responsible:</strong> QA Team (monitoring), Development Team (fixing linked bugs)</li>
+                         <li><strong>Condition for moving out:</strong> The original issue remains "Blocked" until ALL linked "Bug" issues pertaining to it are fixed and moved to "Ready for Release".</li>
+                         <li><strong>Transition From:</strong> Ready for QA.</li>
+                         <li><strong>Transition To:</strong> Ready for Release.</li>
+                       </ul>`,
+                promptContext: "Blocked status for an original task in an agile Kanban workflow. The task is held up by a bug fix."
+            },
+            'Ready for Release': {
+                title: 'Ready for Release',
+                body: `<p>This is the staging area where all issues (original tasks/stories and their associated bugs) are collected and prepared for deployment to production.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Ensures well-communicated and coordinated deployment.</li>
+                         <li><strong>Responsible:</strong> Relevant Team Leads, DevOps (if applicable)</li>
+                         <li><strong>Action:</strong> Final checks, release notes, deployment planning. All parties are informed.</li>
+                         <li><strong>Transition From:</strong> Ready for QA, Blocked, Pending FIX (for bugs).</li>
+                         <li><strong>Transition To:</b> Done.</li>
+                       </ul>`,
+                promptContext: "Ready for Release status in an agile Kanban workflow. Issues are staged for deployment to production."
+            },
+            'Done': {
+                title: 'Done',
+                body: `<p>Issues in this column are considered live in deployment and production, working as required and prescribed.</p>
+                       <ul class="list-disc list-inside space-y-2 mt-4">
+                         <li><strong>Function:</strong> Signifies full completion and delivery.</li>
+                         <li><strong>Responsible:</strong> Lead Developers, Automation (typically)</li>
+                         <li><strong>Transition From:</strong> Ready for Release.</li>
+                       </ul>`,
+                promptContext: "Done status in an agile Kanban workflow. Issues are live in production and complete."
+            }
+        };
+
+        let currentStepKey = '';
+
+        const workflowSteps = document.querySelectorAll('.workflow-step');
+        const roleFilterButtons = document.querySelectorAll('.role-filter-btn');
+        const modal = document.getElementById('step-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const aiTipsButton = document.getElementById('ai-tips-button');
+        const aiTipsOutput = document.getElementById('ai-tips-output');
+        const aiTipsLoading = document.getElementById('ai-tips-loading');
+
+        function filterWorkflow(role) {
+            roleFilterButtons.forEach(btn => {
+                const btnRole = btn.textContent.toLowerCase().replace(' roles', '');
+                if (btnRole === role || (btnRole === 'all' && role === 'all')) {
+                    btn.classList.add('bg-blue-600', 'text-white');
+                    btn.classList.remove('hover:bg-slate-200', 'text-slate-600');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('hover:bg-slate-200', 'text-slate-600');
+                }
+            });
+
+            workflowSteps.forEach(step => {
+                const stepRoles = step.dataset.role;
+                if (role === 'all' || stepRoles.includes(role)) {
+                    step.classList.remove('dimmed');
+                    step.classList.add('highlight');
+                } else {
+                    step.classList.remove('highlight');
+                    step.classList.add('dimmed');
+                }
+            });
+            
+            setTimeout(() => {
+                 workflowSteps.forEach(step => step.classList.remove('highlight'));
+            }, 500);
+        }
+
+        function showModal(stepKey) {
+            currentStepKey = stepKey;
+            const details = stepDetails[stepKey];
+            if (details) {
+                modalTitle.textContent = details.title;
+                modalBody.innerHTML = details.body;
+                aiTipsOutput.innerHTML = ''; // Clear previous AI tips
+                aiTipsLoading.classList.add('hidden'); // Hide loading indicator
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.querySelector('.modal-content').classList.remove('scale-95');
+            }
+        }
+
+        function hideModal() {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('pointer-events-none');
+            }, 300);
+        }
+
+        aiTipsButton.addEventListener('click', async () => {
+            aiTipsOutput.innerHTML = '';
+            aiTipsLoading.classList.remove('hidden');
+
+            const context = stepDetails[currentStepKey].promptContext;
+            const prompt = `As an expert in agile software development and Kanban, provide 3-4 concise, actionable tips or key considerations for the workflow status: "${stepDetails[currentStepKey].title}". Focus on common best practices and what a team member should focus on at this stage.`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    aiTipsOutput.innerHTML = `<h4 class="font-semibold text-slate-800 mb-2">AI Tips:</h4><p>${text}</p>`;
+                } else {
+                    aiTipsOutput.innerHTML = `<p class="text-red-500">Failed to get AI tips. Invalid response structure.</p>`;
+                }
+            } catch (error) {
+                aiTipsOutput.innerHTML = `<p class="text-red-500">Failed to load AI tips. Please try again later. Error: ${error.message}</p>`;
+            } finally {
+                aiTipsLoading.classList.add('hidden');
+            }
+        });
+
+        // Initialize state
+        filterWorkflow('all');
+        // Removed arrow drawing related event listeners
+    </script>
+
+
+</body></html>
