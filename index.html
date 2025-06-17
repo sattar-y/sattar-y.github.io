@@ -171,7 +171,7 @@
                         <!-- Blocked -->
                         <div style="grid-column: 6; grid-row: 2;">
                              <div id="step-blocked" class="workflow-step bg-orange-200 border-orange-300 cursor-pointer" data-role="qa" onclick="showModal('Blocked')">
-                                <span class="block font-semibold text-orange-900">Task: BLOCKED</span>
+                                <span class="block font-semibold text-orange-900">Blocked Task</span>
                                 <span class="text-xs text-orange-700">Original Task Paused</span>
                             </div>
                         </div>
@@ -362,7 +362,7 @@
                 promptContext: "Pending FIX status for bugs in an agile Kanban workflow. Bugs are awaiting developer action."
             },
              'Blocked': {
-                title: 'Task: BLOCKED (Original Issue)',
+                title: 'Blocked Task (Original Issue)',
                 body: `<p>This new column indicates that an original issue (Task/Story) is currently held up because a blocking bug, found during QA, is being addressed by the development team.</p>
                        <ul class="list-disc list-inside space-y-2 mt-4">
                          <li><strong>Function:</strong> Prevents other QA members from unknowingly picking up a non-ready issue from "Ready for QA".</li>
